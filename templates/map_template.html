@@ -123,6 +123,39 @@
             background: #5a6268;
         }
 
+        .layer-toggle {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .layer-toggle:last-child {
+            border-bottom: none;
+        }
+
+        .layer-toggle input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .layer-toggle label {
+            flex: 1;
+            margin-bottom: 0;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .layer-color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-left: 8px;
+            border: 1px solid #ddd;
+        }
+
         #time-controls {
             display: none;
         }
@@ -272,10 +305,19 @@
             <div class="control-section">
                 <h3>Variable Selection</h3>
                 <div class="control-group">
-                    <label for="variable-select">Variable:</label>
+                    <label for="variable-select">Primary Variable:</label>
                     <select id="variable-select"></select>
                 </div>
                 <div id="variable-info" class="info-box"></div>
+            </div>
+
+            <div class="control-section">
+                <h3>Layer Visibility</h3>
+                <div id="layer-toggles"></div>
+                <div class="control-group">
+                    <button class="button secondary" id="show-all-layers">Show All</button>
+                    <button class="button secondary" id="hide-all-layers">Hide All</button>
+                </div>
             </div>
 
             <div class="control-section" id="time-controls">
@@ -338,13 +380,15 @@
         let currentTimeIndex = 0;
         let isPlaying = false;
         let playInterval = null;
-        let visualizationLayer = null;
-        let currentOpacity = 0.7;  // Default opacity (matches slider default of 70)
+        let visualizationLayers = {};  // Changed to object to store multiple layers
+        let layerVisibility = {};      // Track which layers are visible
+        let currentOpacity = 0.7;      // Default opacity (matches slider default of 70)
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
             populateVariableSelect();
+            createLayerToggles();
             setupEventListeners();
             loadVariable(Object.keys(DATA.variables)[0]);
         });
@@ -373,6 +417,57 @@
             });
         }
 
+        function createLayerToggles() {
+            const container = document.getElementById('layer-toggles');
+            const varNames = Object.keys(DATA.variables);
+
+            varNames.forEach((varName, index) => {
+                const variable = DATA.variables[varName];
+
+                // Initialize visibility - first variable visible by default
+                layerVisibility[varName] = index === 0;
+
+                // Create toggle element
+                const toggleDiv = document.createElement('div');
+                toggleDiv.className = 'layer-toggle';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `layer-${varName}`;
+                checkbox.checked = layerVisibility[varName];
+                checkbox.addEventListener('change', function() {
+                    toggleLayerVisibility(varName, this.checked);
+                });
+
+                const label = document.createElement('label');
+                label.htmlFor = `layer-${varName}`;
+                label.textContent = varName;
+
+                // Color indicator box (uses first color from colormap)
+                const colorBox = document.createElement('div');
+                colorBox.className = 'layer-color-box';
+                colorBox.style.background = getVariableColor(variable);
+
+                toggleDiv.appendChild(checkbox);
+                toggleDiv.appendChild(label);
+                toggleDiv.appendChild(colorBox);
+                container.appendChild(toggleDiv);
+            });
+        }
+
+        function getVariableColor(variable) {
+            // Return a representative color from the variable's colormap
+            const colormaps = {
+                'viridis': '#440154',
+                'plasma': '#0d0887',
+                'jet': '#0000ff',
+                'rainbow': '#9400d3',
+                'cool': '#00ffff',
+                'hot': '#ff0000'
+            };
+            return colormaps[variable.colormap] || '#667eea';
+        }
+
         function setupEventListeners() {
             document.getElementById('variable-select').addEventListener('change', function() {
                 loadVariable(this.value);
@@ -397,6 +492,28 @@
                     stopAnimation();
                     startAnimation();
                 }
+            });
+
+            document.getElementById('show-all-layers').addEventListener('click', function() {
+                Object.keys(DATA.variables).forEach(varName => {
+                    layerVisibility[varName] = true;
+                    document.getElementById(`layer-${varName}`).checked = true;
+                    if (!visualizationLayers[varName]) {
+                        renderLayer(varName);
+                    } else {
+                        map.addLayer(visualizationLayers[varName]);
+                    }
+                });
+            });
+
+            document.getElementById('hide-all-layers').addEventListener('click', function() {
+                Object.keys(DATA.variables).forEach(varName => {
+                    layerVisibility[varName] = false;
+                    document.getElementById(`layer-${varName}`).checked = false;
+                    if (visualizationLayers[varName]) {
+                        map.removeLayer(visualizationLayers[varName]);
+                    }
+                });
             });
         }
 
@@ -423,52 +540,85 @@
                 document.getElementById('time-controls').style.display = 'none';
             }
 
-            updateVisualization();
-        }
-
-        function updateVisualization() {
-            // Remove old layer
-            if (visualizationLayer) {
-                map.removeLayer(visualizationLayer);
-            }
-
-            // Update time display
-            if (currentVariable.timestamps.length > 1) {
-                const timestamp = new Date(currentVariable.timestamps[currentTimeIndex]);
-                document.getElementById('time-display').textContent = timestamp.toLocaleString();
-            }
-
-            // Update colorbar
+            // Update colorbar for primary variable
             updateColorbar();
 
-            // Render based on plot type
-            switch (currentVariable.plot_type) {
-                case 'scatter':
-                    renderScatter();
-                    break;
-                case 'contour':
-                    renderContour(false);
-                    break;
-                case 'filled_contour':
-                    renderContour(true);
-                    break;
-                case 'vector':
-                    renderVector();
-                    break;
-                case 'stream':
-                    renderStream();
-                    break;
+            // Render the primary variable if visible
+            if (layerVisibility[varName]) {
+                renderLayer(varName);
             }
 
             hideLoading();
         }
 
-        function renderScatter() {
-            const lon = currentVariable.lon;
-            const lat = currentVariable.lat;
-            const data = currentVariable.data[currentTimeIndex];
+        function updateVisualization() {
+            // Update all visible layers
+            showLoading();
 
-            const colorScale = getColorScale();
+            // Update time display based on primary variable
+            if (currentVariable.timestamps.length > 1) {
+                const timestamp = new Date(currentVariable.timestamps[currentTimeIndex]);
+                document.getElementById('time-display').textContent = timestamp.toLocaleString();
+            }
+
+            // Update all visible layers
+            Object.keys(DATA.variables).forEach(varName => {
+                if (layerVisibility[varName]) {
+                    renderLayer(varName);
+                }
+            });
+
+            hideLoading();
+        }
+
+        function toggleLayerVisibility(varName, visible) {
+            layerVisibility[varName] = visible;
+
+            if (visible) {
+                // Render and show layer
+                renderLayer(varName);
+            } else {
+                // Hide layer
+                if (visualizationLayers[varName]) {
+                    map.removeLayer(visualizationLayers[varName]);
+                }
+            }
+        }
+
+        function renderLayer(varName) {
+            const variable = DATA.variables[varName];
+
+            // Remove old layer if exists
+            if (visualizationLayers[varName]) {
+                map.removeLayer(visualizationLayers[varName]);
+            }
+
+            // Render based on plot type
+            switch (variable.plot_type) {
+                case 'scatter':
+                    renderScatter(varName, variable);
+                    break;
+                case 'contour':
+                    renderContour(varName, variable, false);
+                    break;
+                case 'filled_contour':
+                    renderContour(varName, variable, true);
+                    break;
+                case 'vector':
+                    renderVector(varName, variable);
+                    break;
+                case 'stream':
+                    renderStream(varName, variable);
+                    break;
+            }
+        }
+
+        function renderScatter(varName, variable) {
+            const lon = variable.lon;
+            const lat = variable.lat;
+            const data = variable.data[currentTimeIndex];
+
+            const colorScale = getColorScale(variable);
             const points = [];
 
             for (let i = 0; i < lat.length; i++) {
@@ -485,26 +635,26 @@
                             weight: 1
                         });
 
-                        circle.bindPopup(`Value: ${value.toFixed(2)} ${currentVariable.units}`);
+                        circle.bindPopup(`${varName}: ${value.toFixed(2)} ${variable.units}`);
                         points.push(circle);
                     }
                 }
             }
 
-            visualizationLayer = L.layerGroup(points).addTo(map);
+            visualizationLayers[varName] = L.layerGroup(points).addTo(map);
         }
 
-        function renderContour(filled) {
-            const lon = currentVariable.lon;
-            const lat = currentVariable.lat;
-            const data = currentVariable.data[currentTimeIndex];
+        function renderContour(varName, variable, filled) {
+            const lon = variable.lon;
+            const lat = variable.lat;
+            const data = variable.data[currentTimeIndex];
 
             // Create contours using d3
-            const colorScale = getColorScale();
+            const colorScale = getColorScale(variable);
             const thresholds = d3.range(
-                currentVariable.vmin,
-                currentVariable.vmax,
-                (currentVariable.vmax - currentVariable.vmin) / currentVariable.levels
+                variable.vmin,
+                variable.vmax,
+                (variable.vmax - variable.vmin) / variable.levels
             );
 
             const contours = d3.contours()
@@ -540,21 +690,21 @@
                         opacity: filled ? 0 : currentOpacity
                     });
 
-                    leafletPoly.bindPopup(`Value: ${value.toFixed(2)} ${currentVariable.units}`);
+                    leafletPoly.bindPopup(`${varName}: ${value.toFixed(2)} ${variable.units}`);
                     polygons.push(leafletPoly);
                 });
             });
 
-            visualizationLayer = L.layerGroup(polygons).addTo(map);
+            visualizationLayers[varName] = L.layerGroup(polygons).addTo(map);
         }
 
-        function renderVector() {
-            const lon = currentVariable.lon;
-            const lat = currentVariable.lat;
-            const u = currentVariable.u_component[currentTimeIndex];
-            const v = currentVariable.v_component[currentTimeIndex];
+        function renderVector(varName, variable) {
+            const lon = variable.lon;
+            const lat = variable.lat;
+            const u = variable.u_component[currentTimeIndex];
+            const v = variable.v_component[currentTimeIndex];
 
-            const colorScale = getColorScale();
+            const colorScale = getColorScale(variable);
             const arrows = [];
 
             // Subsample for better visualization
@@ -587,23 +737,23 @@
                             }
                         );
 
-                        arrow.bindPopup(`Magnitude: ${magnitude.toFixed(2)} ${currentVariable.units}`);
+                        arrow.bindPopup(`${varName}: ${magnitude.toFixed(2)} ${variable.units}`);
                         arrows.push(arrow);
                     }
                 }
             }
 
-            visualizationLayer = L.layerGroup(arrows).addTo(map);
+            visualizationLayers[varName] = L.layerGroup(arrows).addTo(map);
         }
 
-        function renderStream() {
+        function renderStream(varName, variable) {
             // Simplified streamline rendering using particles
-            const lon = currentVariable.lon;
-            const lat = currentVariable.lat;
-            const u = currentVariable.u_component[currentTimeIndex];
-            const v = currentVariable.v_component[currentTimeIndex];
+            const lon = variable.lon;
+            const lat = variable.lat;
+            const u = variable.u_component[currentTimeIndex];
+            const v = variable.v_component[currentTimeIndex];
 
-            const colorScale = getColorScale();
+            const colorScale = getColorScale(variable);
             const lines = [];
 
             // Create streamlines from seed points
@@ -624,13 +774,13 @@
                             opacity: currentOpacity
                         });
 
-                        line.bindPopup(`Magnitude: ${avgMagnitude.toFixed(2)} ${currentVariable.units}`);
+                        line.bindPopup(`${varName}: ${avgMagnitude.toFixed(2)} ${variable.units}`);
                         lines.push(line);
                     }
                 }
             }
 
-            visualizationLayer = L.layerGroup(lines).addTo(map);
+            visualizationLayers[varName] = L.layerGroup(lines).addTo(map);
         }
 
         function traceStreamline(startI, startJ, u, v, lat, lon, maxSteps = 50) {
@@ -664,10 +814,10 @@
             return streamline;
         }
 
-        function getColorScale() {
-            const colormap = currentVariable.colormap;
-            const vmin = currentVariable.vmin;
-            const vmax = currentVariable.vmax;
+        function getColorScale(variable) {
+            const colormap = variable.colormap;
+            const vmin = variable.vmin;
+            const vmax = variable.vmax;
 
             let scale;
             switch (colormap) {
@@ -703,7 +853,7 @@
             document.getElementById('colorbar-title').textContent =
                 `${document.getElementById('variable-select').value} (${currentVariable.units})`;
 
-            const gradient = getColorScale();
+            const gradient = getColorScale(currentVariable);
             const steps = 20;
             let gradientCSS = 'linear-gradient(to right';
             for (let i = 0; i <= steps; i++) {
@@ -720,13 +870,16 @@
 
         function updateOpacity(opacity) {
             currentOpacity = opacity;  // Store current opacity value
-            if (visualizationLayer) {
-                visualizationLayer.eachLayer(layer => {
-                    if (layer.setStyle) {
-                        layer.setStyle({ fillOpacity: opacity, opacity: opacity });
-                    }
-                });
-            }
+            // Update all visible layers
+            Object.keys(visualizationLayers).forEach(varName => {
+                if (visualizationLayers[varName]) {
+                    visualizationLayers[varName].eachLayer(layer => {
+                        if (layer.setStyle) {
+                            layer.setStyle({ fillOpacity: opacity, opacity: opacity });
+                        }
+                    });
+                }
+            });
         }
 
         function togglePlay() {

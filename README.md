@@ -147,6 +147,50 @@ mp.add_variable(
 mp.save_html('multi_variable.html')
 ```
 
+### Custom Color Scale Ranges
+
+Control the color scale range with `vmin` and `vmax`:
+
+```python
+# Auto-range (default) - uses data min/max
+mp.add_variable(
+    name='Temperature',
+    lon=lon2d,
+    lat=lat2d,
+    data=temperature,
+    plot_type='filled_contour',
+    colormap='jet',
+    units='°C'
+    # vmin=None, vmax=None (default)
+)
+
+# Fixed range - useful for comparing multiple datasets
+mp.add_variable(
+    name='Temperature (Fixed Scale)',
+    lon=lon2d,
+    lat=lat2d,
+    data=temperature,
+    plot_type='filled_contour',
+    colormap='jet',
+    vmin=0,      # Fixed minimum
+    vmax=40,     # Fixed maximum
+    units='°C'
+)
+
+# Symmetric range - useful for anomaly plots
+mp.add_variable(
+    name='Temperature Anomaly',
+    lon=lon2d,
+    lat=lat2d,
+    data=temperature - 20,
+    plot_type='filled_contour',
+    colormap='cool',
+    vmin=-15,    # Symmetric around zero
+    vmax=15,
+    units='°C'
+)
+```
+
 ### Web Server Mode
 
 ```python
@@ -250,13 +294,17 @@ The generated web interface includes:
 
 - **Pan and zoom** on the map
 - **Variable selection** dropdown to switch between fields
+- **Layer overlay controls** - toggle multiple variables on/off to view them simultaneously
+  - Individual checkboxes for each layer
+  - Show All / Hide All buttons
+  - Overlay filled contours with contour lines, vectors, or other layers
 - **Time controls** for animated data:
   - Play/Pause animation
   - Step forward/backward
   - Time slider
   - Adjustable animation speed
-- **Opacity control** for visualization layer
-- **Color bar** showing value range
+- **Opacity control** for all visualization layers
+- **Color bar** showing value range for primary variable
 - **Interactive tooltips** on hover
 - **Reset view** button
 
@@ -268,6 +316,8 @@ See the `examples/` directory for complete working examples:
 - `example_timeseries.py` - Animated time-series data
 - `example_vector_field.py` - Wind velocity vectors
 - `example_multiple_variables.py` - Multiple variables with switching
+- `example_custom_range.py` - Custom vmin/vmax color scale ranges
+- `example_layer_overlay.py` - Overlaying multiple layers simultaneously
 - `example_webserver.py` - Using web server mode
 
 Run any example:
