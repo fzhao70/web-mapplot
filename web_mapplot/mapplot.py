@@ -132,7 +132,7 @@ class MapPlot:
 
         # Read template
         template_path = Path(__file__).parent.parent / 'templates' / 'map_template.html'
-        with open(template_path, 'r') as f:
+        with open(template_path, 'r', encoding='utf-8') as f:
             template = f.read()
 
         # Prepare data
@@ -159,7 +159,7 @@ class MapPlot:
         html = self._generate_html()
 
         output_path = Path(filename)
-        output_path.write_text(html)
+        output_path.write_text(html, encoding='utf-8')
         print(f"Saved visualization to {output_path.absolute()}")
 
         return str(output_path.absolute())
