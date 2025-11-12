@@ -294,13 +294,17 @@ The generated web interface includes:
 
 - **Pan and zoom** on the map
 - **Variable selection** dropdown to switch between fields
+- **Layer overlay controls** - toggle multiple variables on/off to view them simultaneously
+  - Individual checkboxes for each layer
+  - Show All / Hide All buttons
+  - Overlay filled contours with contour lines, vectors, or other layers
 - **Time controls** for animated data:
   - Play/Pause animation
   - Step forward/backward
   - Time slider
   - Adjustable animation speed
-- **Opacity control** for visualization layer
-- **Color bar** showing value range
+- **Opacity control** for all visualization layers
+- **Color bar** showing value range for primary variable
 - **Interactive tooltips** on hover
 - **Reset view** button
 
@@ -313,6 +317,7 @@ See the `examples/` directory for complete working examples:
 - `example_vector_field.py` - Wind velocity vectors
 - `example_multiple_variables.py` - Multiple variables with switching
 - `example_custom_range.py` - Custom vmin/vmax color scale ranges
+- `example_layer_overlay.py` - Overlaying multiple layers simultaneously
 - `example_webserver.py` - Using web server mode
 
 Run any example:
