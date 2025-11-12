@@ -147,6 +147,50 @@ mp.add_variable(
 mp.save_html('multi_variable.html')
 ```
 
+### Custom Color Scale Ranges
+
+Control the color scale range with `vmin` and `vmax`:
+
+```python
+# Auto-range (default) - uses data min/max
+mp.add_variable(
+    name='Temperature',
+    lon=lon2d,
+    lat=lat2d,
+    data=temperature,
+    plot_type='filled_contour',
+    colormap='jet',
+    units='°C'
+    # vmin=None, vmax=None (default)
+)
+
+# Fixed range - useful for comparing multiple datasets
+mp.add_variable(
+    name='Temperature (Fixed Scale)',
+    lon=lon2d,
+    lat=lat2d,
+    data=temperature,
+    plot_type='filled_contour',
+    colormap='jet',
+    vmin=0,      # Fixed minimum
+    vmax=40,     # Fixed maximum
+    units='°C'
+)
+
+# Symmetric range - useful for anomaly plots
+mp.add_variable(
+    name='Temperature Anomaly',
+    lon=lon2d,
+    lat=lat2d,
+    data=temperature - 20,
+    plot_type='filled_contour',
+    colormap='cool',
+    vmin=-15,    # Symmetric around zero
+    vmax=15,
+    units='°C'
+)
+```
+
 ### Web Server Mode
 
 ```python
@@ -268,6 +312,7 @@ See the `examples/` directory for complete working examples:
 - `example_timeseries.py` - Animated time-series data
 - `example_vector_field.py` - Wind velocity vectors
 - `example_multiple_variables.py` - Multiple variables with switching
+- `example_custom_range.py` - Custom vmin/vmax color scale ranges
 - `example_webserver.py` - Using web server mode
 
 Run any example:

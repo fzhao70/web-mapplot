@@ -125,6 +125,23 @@ mp.add_variable('Wind', lon2d, lat2d, wind_data, ...)
 
 Users can switch between them in the web interface.
 
+### Custom Color Ranges
+
+Control the color scale with `vmin` and `vmax`:
+
+```python
+# Auto-range (default) - uses data min/max
+mp.add_variable('Temperature', lon2d, lat2d, data, ...)
+
+# Fixed range - useful for comparing datasets
+mp.add_variable('Temperature', lon2d, lat2d, data,
+                vmin=0, vmax=40, ...)
+
+# Symmetric range - useful for anomalies
+mp.add_variable('Anomaly', lon2d, lat2d, data,
+                vmin=-10, vmax=10, ...)
+```
+
 ## Color Schemes
 
 Available colormaps:
