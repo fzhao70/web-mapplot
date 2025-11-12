@@ -76,29 +76,38 @@ class MapPlot:
         if lon.shape != lat.shape:
             raise ValueError("lon and lat must have the same shape")
 
+        # Handle vector fields - validate before dimension conversion
+        if plot_type in ['vector', 'stream']:
+            if u_component is None or v_component is None:
+                raise ValueError(f"{plot_type} requires both u_component and v_component")
+            if u_component.shape != data.shape or v_component.shape != data.shape:
+                raise ValueError("u_component and v_component must match data shape (before time expansion)")
+
         # Handle 2D vs 3D data
         if data.ndim == 2:
             if data.shape != lon.shape:
                 raise ValueError("2D data must match lon/lat shape")
             data = data[np.newaxis, ...]  # Add time dimension
             timestamps = timestamps or [datetime.now()]
+            # Also add time dimension to vector components if present
+            if u_component is not None:
+                u_component = u_component[np.newaxis, ...]
+            if v_component is not None:
+                v_component = v_component[np.newaxis, ...]
         elif data.ndim == 3:
             if data.shape[1:] != lon.shape:
                 raise ValueError("3D data shape[1:] must match lon/lat shape")
             if timestamps is None:
                 timestamps = [datetime.now()] * data.shape[0]
+            # Validate vector components match 3D data
+            if plot_type in ['vector', 'stream']:
+                if u_component.shape != data.shape or v_component.shape != data.shape:
+                    raise ValueError("For 3D data, u_component and v_component must be 3D with same shape as data")
         else:
             raise ValueError("data must be 2D or 3D array")
 
         if len(timestamps) != data.shape[0]:
             raise ValueError("Number of timestamps must match first dimension of data")
-
-        # Handle vector fields
-        if plot_type in ['vector', 'stream']:
-            if u_component is None or v_component is None:
-                raise ValueError(f"{plot_type} requires both u_component and v_component")
-            if u_component.shape != data.shape or v_component.shape != data.shape:
-                raise ValueError("u_component and v_component must match data shape")
 
         # Calculate value range
         if vmin is None:
