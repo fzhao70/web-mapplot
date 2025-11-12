@@ -338,6 +338,12 @@ The generated web interface includes:
   - Step forward/backward
   - Time slider
   - Adjustable animation speed
+- **Base map selection** - choose from multiple background maps
+  - OpenStreetMap (default) - detailed street map
+  - Topographic - terrain with elevation contours
+  - Satellite - aerial/satellite imagery
+  - Light (CartoDB) - minimal light background
+  - Dark (CartoDB) - dark theme background
 - **Opacity control** for all visualization layers
 - **Vector scale control** - adjust arrow size for vector/stream plots in real-time
   - Dynamic slider (0.1x to 5.0x) appears when vector layers are visible
@@ -357,6 +363,7 @@ See the `examples/` directory for complete working examples:
 - `example_multiple_variables.py` - Multiple variables with switching
 - `example_custom_range.py` - Custom vmin/vmax color scale ranges
 - `example_layer_overlay.py` - Overlaying multiple layers simultaneously
+- `example_basemap_selection.py` - Switch between different base maps (OSM, topo, satellite)
 - `example_webserver.py` - Using web server mode
 
 Run any example:
