@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}}</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        #header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        #main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #map {
+            flex: 1;
+            position: relative;
+        }
+
+        #control-panel {
+            width: 320px;
+            background: white;
+            border-left: 1px solid #ddd;
+            overflow-y: auto;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .control-section {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .control-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .button:hover {
+            background: #5568d3;
+        }
+
+        .button:active {
+            transform: translateY(1px);
+        }
+
+        .button.secondary {
+            background: #6c757d;
+        }
+
+        .button.secondary:hover {
+            background: #5a6268;
+        }
+
+        #time-controls {
+            display: none;
+        }
+
+        .time-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .play-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .play-controls .button {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            padding: 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 3px solid #667eea;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        #colorbar {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            min-width: 200px;
+        }
+
+        #colorbar-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        #colorbar-gradient {
+            height: 20px;
+            border-radius: 3px;
+            margin-bottom: 5px;
+        }
+
+        .colorbar-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .leaflet-container {
+            background: #aad3df;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 10000;
+            display: none;
+        }
+
+        #loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        canvas.visualization-layer {
+            position: absolute;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>{{TITLE}}</h1>
+    </div>
+
+    <div id="main-container">
+        <div id="map"></div>
+
+        <div id="control-panel">
+            <div class="control-section">
+                <h3>Variable Selection</h3>
+                <div class="control-group">
+                    <label for="variable-select">Variable:</label>
+                    <select id="variable-select"></select>
+                </div>
+                <div id="variable-info" class="info-box"></div>
+            </div>
+
+            <div class="control-section" id="time-controls">
+                <h3>Time Control</h3>
+                <div class="time-display" id="time-display">--</div>
+                <div class="play-controls">
+                    <button class="button secondary" id="play-pause">▶ Play</button>
+                    <button class="button secondary" id="step-back">◄</button>
+                    <button class="button secondary" id="step-forward">►</button>
+                </div>
+                <div class="control-group">
+                    <label for="time-slider">Time Step:</label>
+                    <input type="range" id="time-slider" min="0" max="0" value="0">
+                </div>
+                <div class="control-group">
+                    <label for="speed-slider">Animation Speed:</label>
+                    <input type="range" id="speed-slider" min="100" max="2000" value="500" step="100">
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Visualization Settings</h3>
+                <div class="control-group">
+                    <label for="opacity-slider">Opacity:</label>
+                    <input type="range" id="opacity-slider" min="0" max="100" value="70">
+                </div>
+                <button class="button" id="reset-view">Reset View</button>
+            </div>
+        </div>
+
+        <div id="colorbar">
+            <div id="colorbar-title">Value</div>
+            <div id="colorbar-gradient"></div>
+            <div class="colorbar-labels">
+                <span id="colorbar-min">0</span>
+                <span id="colorbar-max">100</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>Rendering visualization...</div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- D3.js for contours -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Chroma.js for color scales -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
+
+    <script>
+        // Data from Python
+        const DATA = {{DATA_JSON}};
+
+        // Global state
+        let map;
+        let currentVariable = null;
+        let currentTimeIndex = 0;
+        let isPlaying = false;
+        let playInterval = null;
+        let visualizationLayer = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            populateVariableSelect();
+            setupEventListeners();
+            loadVariable(Object.keys(DATA.variables)[0]);
+        });
+
+        function initMap() {
+            map = L.map('map', {
+                center: DATA.center,
+                zoom: DATA.zoom,
+                zoomControl: true
+            });
+
+            // Add base map layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(map);
+        }
+
+        function populateVariableSelect() {
+            const select = document.getElementById('variable-select');
+            Object.keys(DATA.variables).forEach(varName => {
+                const option = document.createElement('option');
+                option.value = varName;
+                option.textContent = varName;
+                select.appendChild(option);
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('variable-select').addEventListener('change', function() {
+                loadVariable(this.value);
+            });
+
+            document.getElementById('time-slider').addEventListener('input', function() {
+                currentTimeIndex = parseInt(this.value);
+                updateVisualization();
+            });
+
+            document.getElementById('opacity-slider').addEventListener('input', function() {
+                updateOpacity(this.value / 100);
+            });
+
+            document.getElementById('play-pause').addEventListener('click', togglePlay);
+            document.getElementById('step-back').addEventListener('click', stepBack);
+            document.getElementById('step-forward').addEventListener('click', stepForward);
+            document.getElementById('reset-view').addEventListener('click', resetView);
+
+            document.getElementById('speed-slider').addEventListener('input', function() {
+                if (isPlaying) {
+                    stopAnimation();
+                    startAnimation();
+                }
+            });
+        }
+
+        function loadVariable(varName) {
+            showLoading();
+            currentVariable = DATA.variables[varName];
+            currentTimeIndex = 0;
+
+            // Update info box
+            const infoBox = document.getElementById('variable-info');
+            infoBox.innerHTML = `
+                <strong>Type:</strong> ${currentVariable.plot_type}<br>
+                <strong>Shape:</strong> ${currentVariable.shape.join(' × ')}<br>
+                <strong>Range:</strong> ${currentVariable.vmin.toFixed(2)} - ${currentVariable.vmax.toFixed(2)} ${currentVariable.units}
+            `;
+
+            // Setup time controls
+            const numTimesteps = currentVariable.shape[0];
+            if (numTimesteps > 1) {
+                document.getElementById('time-controls').style.display = 'block';
+                document.getElementById('time-slider').max = numTimesteps - 1;
+                document.getElementById('time-slider').value = 0;
+            } else {
+                document.getElementById('time-controls').style.display = 'none';
+            }
+
+            updateVisualization();
+        }
+
+        function updateVisualization() {
+            // Remove old layer
+            if (visualizationLayer) {
+                map.removeLayer(visualizationLayer);
+            }
+
+            // Update time display
+            if (currentVariable.timestamps.length > 1) {
+                const timestamp = new Date(currentVariable.timestamps[currentTimeIndex]);
+                document.getElementById('time-display').textContent = timestamp.toLocaleString();
+            }
+
+            // Update colorbar
+            updateColorbar();
+
+            // Render based on plot type
+            switch (currentVariable.plot_type) {
+                case 'scatter':
+                    renderScatter();
+                    break;
+                case 'contour':
+                    renderContour(false);
+                    break;
+                case 'filled_contour':
+                    renderContour(true);
+                    break;
+                case 'vector':
+                    renderVector();
+                    break;
+                case 'stream':
+                    renderStream();
+                    break;
+            }
+
+            hideLoading();
+        }
+
+        function renderScatter() {
+            const lon = currentVariable.lon;
+            const lat = currentVariable.lat;
+            const data = currentVariable.data[currentTimeIndex];
+
+            const colorScale = getColorScale();
+            const points = [];
+
+            for (let i = 0; i < lat.length; i++) {
+                for (let j = 0; j < lat[i].length; j++) {
+                    if (!isNaN(data[i][j])) {
+                        const value = data[i][j];
+                        const color = colorScale(value);
+
+                        const circle = L.circleMarker([lat[i][j], lon[i][j]], {
+                            radius: 3,
+                            fillColor: color,
+                            fillOpacity: 0.7,
+                            color: color,
+                            weight: 1
+                        });
+
+                        circle.bindPopup(`Value: ${value.toFixed(2)} ${currentVariable.units}`);
+                        points.push(circle);
+                    }
+                }
+            }
+
+            visualizationLayer = L.layerGroup(points).addTo(map);
+        }
+
+        function renderContour(filled) {
+            const lon = currentVariable.lon;
+            const lat = currentVariable.lat;
+            const data = currentVariable.data[currentTimeIndex];
+
+            // Create contours using d3
+            const colorScale = getColorScale();
+            const thresholds = d3.range(
+                currentVariable.vmin,
+                currentVariable.vmax,
+                (currentVariable.vmax - currentVariable.vmin) / currentVariable.levels
+            );
+
+            const contours = d3.contours()
+                .size([lon[0].length, lon.length])
+                .thresholds(thresholds);
+
+            const contourData = contours(data.flat());
+
+            const polygons = [];
+
+            contourData.forEach(contour => {
+                const coordinates = contour.coordinates.map(polygon => {
+                    return polygon.map(ring => {
+                        return ring.map(point => {
+                            const j = Math.floor(point[0]);
+                            const i = Math.floor(point[1]);
+                            const ni = Math.min(i, lat.length - 1);
+                            const nj = Math.min(j, lon[0].length - 1);
+                            return [lat[ni][nj], lon[ni][nj]];
+                        });
+                    });
+                });
+
+                const value = contour.value;
+                const color = colorScale(value);
+
+                coordinates.forEach(poly => {
+                    const leafletPoly = L.polygon(poly, {
+                        fillColor: filled ? color : 'none',
+                        fillOpacity: filled ? 0.7 : 0,
+                        color: color,
+                        weight: filled ? 0 : 2,
+                        opacity: filled ? 0 : 0.8
+                    });
+
+                    leafletPoly.bindPopup(`Value: ${value.toFixed(2)} ${currentVariable.units}`);
+                    polygons.push(leafletPoly);
+                });
+            });
+
+            visualizationLayer = L.layerGroup(polygons).addTo(map);
+        }
+
+        function renderVector() {
+            const lon = currentVariable.lon;
+            const lat = currentVariable.lat;
+            const u = currentVariable.u_component[currentTimeIndex];
+            const v = currentVariable.v_component[currentTimeIndex];
+
+            const colorScale = getColorScale();
+            const arrows = [];
+
+            // Subsample for better visualization
+            const step = Math.max(1, Math.floor(lon[0].length / 30));
+
+            for (let i = 0; i < lat.length; i += step) {
+                for (let j = 0; j < lat[i].length; j += step) {
+                    if (!isNaN(u[i][j]) && !isNaN(v[i][j])) {
+                        const magnitude = Math.sqrt(u[i][j] ** 2 + v[i][j] ** 2);
+                        const angle = Math.atan2(v[i][j], u[i][j]);
+
+                        const color = colorScale(magnitude);
+
+                        // Calculate arrow end point
+                        const scale = 0.5;
+                        const dx = u[i][j] * scale;
+                        const dy = v[i][j] * scale;
+
+                        const startLat = lat[i][j];
+                        const startLon = lon[i][j];
+                        const endLat = startLat + dy * 0.01;
+                        const endLon = startLon + dx * 0.01;
+
+                        const arrow = L.polyline(
+                            [[startLat, startLon], [endLat, endLon]],
+                            {
+                                color: color,
+                                weight: 2,
+                                opacity: 0.8
+                            }
+                        );
+
+                        arrow.bindPopup(`Magnitude: ${magnitude.toFixed(2)} ${currentVariable.units}`);
+                        arrows.push(arrow);
+                    }
+                }
+            }
+
+            visualizationLayer = L.layerGroup(arrows).addTo(map);
+        }
+
+        function renderStream() {
+            // Simplified streamline rendering using particles
+            const lon = currentVariable.lon;
+            const lat = currentVariable.lat;
+            const u = currentVariable.u_component[currentTimeIndex];
+            const v = currentVariable.v_component[currentTimeIndex];
+
+            const colorScale = getColorScale();
+            const lines = [];
+
+            // Create streamlines from seed points
+            const numSeeds = 50;
+            const step = Math.floor(lon[0].length / Math.sqrt(numSeeds));
+
+            for (let i = step; i < lat.length; i += step) {
+                for (let j = step; j < lat[i].length; j += step) {
+                    const streamline = traceStreamline(i, j, u, v, lat, lon);
+                    if (streamline.length > 2) {
+                        const avgMagnitude = streamline.reduce((sum, pt) => sum + pt.mag, 0) / streamline.length;
+                        const color = colorScale(avgMagnitude);
+
+                        const coords = streamline.map(pt => [pt.lat, pt.lon]);
+                        const line = L.polyline(coords, {
+                            color: color,
+                            weight: 2,
+                            opacity: 0.7
+                        });
+
+                        line.bindPopup(`Magnitude: ${avgMagnitude.toFixed(2)} ${currentVariable.units}`);
+                        lines.push(line);
+                    }
+                }
+            }
+
+            visualizationLayer = L.layerGroup(lines).addTo(map);
+        }
+
+        function traceStreamline(startI, startJ, u, v, lat, lon, maxSteps = 50) {
+            const streamline = [];
+            let i = startI;
+            let j = startJ;
+
+            for (let step = 0; step < maxSteps; step++) {
+                if (i < 0 || i >= lat.length - 1 || j < 0 || j >= lon[0].length - 1) break;
+
+                const ui = u[i][j];
+                const vi = v[i][j];
+
+                if (isNaN(ui) || isNaN(vi)) break;
+
+                const magnitude = Math.sqrt(ui ** 2 + vi ** 2);
+                streamline.push({
+                    lat: lat[i][j],
+                    lon: lon[i][j],
+                    mag: magnitude
+                });
+
+                // Move to next point
+                const di = vi * 0.5;
+                const dj = ui * 0.5;
+
+                i = Math.round(i + di);
+                j = Math.round(j + dj);
+            }
+
+            return streamline;
+        }
+
+        function getColorScale() {
+            const colormap = currentVariable.colormap;
+            const vmin = currentVariable.vmin;
+            const vmax = currentVariable.vmax;
+
+            let scale;
+            switch (colormap) {
+                case 'viridis':
+                    scale = chroma.scale(['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde724']);
+                    break;
+                case 'plasma':
+                    scale = chroma.scale(['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921']);
+                    break;
+                case 'jet':
+                    scale = chroma.scale(['blue', 'cyan', 'lime', 'yellow', 'red']);
+                    break;
+                case 'rainbow':
+                    scale = chroma.scale(['purple', 'blue', 'green', 'yellow', 'orange', 'red']);
+                    break;
+                case 'cool':
+                    scale = chroma.scale(['cyan', 'magenta']);
+                    break;
+                case 'hot':
+                    scale = chroma.scale(['black', 'red', 'yellow', 'white']);
+                    break;
+                default:
+                    scale = chroma.scale('YlOrRd');
+            }
+
+            return (value) => {
+                const normalized = (value - vmin) / (vmax - vmin);
+                return scale(Math.max(0, Math.min(1, normalized))).hex();
+            };
+        }
+
+        function updateColorbar() {
+            document.getElementById('colorbar-title').textContent =
+                `${document.getElementById('variable-select').value} (${currentVariable.units})`;
+
+            const gradient = getColorScale();
+            const steps = 20;
+            let gradientCSS = 'linear-gradient(to right';
+            for (let i = 0; i <= steps; i++) {
+                const value = currentVariable.vmin + (currentVariable.vmax - currentVariable.vmin) * i / steps;
+                const color = gradient(value);
+                gradientCSS += `, ${color}`;
+            }
+            gradientCSS += ')';
+
+            document.getElementById('colorbar-gradient').style.background = gradientCSS;
+            document.getElementById('colorbar-min').textContent = currentVariable.vmin.toFixed(2);
+            document.getElementById('colorbar-max').textContent = currentVariable.vmax.toFixed(2);
+        }
+
+        function updateOpacity(opacity) {
+            if (visualizationLayer) {
+                visualizationLayer.eachLayer(layer => {
+                    if (layer.setStyle) {
+                        layer.setStyle({ fillOpacity: opacity, opacity: opacity });
+                    }
+                });
+            }
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopAnimation();
+            } else {
+                startAnimation();
+            }
+        }
+
+        function startAnimation() {
+            isPlaying = true;
+            document.getElementById('play-pause').textContent = '⏸ Pause';
+            const speed = parseInt(document.getElementById('speed-slider').value);
+
+            playInterval = setInterval(() => {
+                currentTimeIndex = (currentTimeIndex + 1) % currentVariable.shape[0];
+                document.getElementById('time-slider').value = currentTimeIndex;
+                updateVisualization();
+            }, 2100 - speed);
+        }
+
+        function stopAnimation() {
+            isPlaying = false;
+            document.getElementById('play-pause').textContent = '▶ Play';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function stepBack() {
+            if (currentTimeIndex > 0) {
+                currentTimeIndex--;
+                document.getElementById('time-slider').value = currentTimeIndex;
+                updateVisualization();
+            }
+        }
+
+        function stepForward() {
+            if (currentTimeIndex < currentVariable.shape[0] - 1) {
+                currentTimeIndex++;
+                document.getElementById('time-slider').value = currentTimeIndex;
+                updateVisualization();
+            }
+        }
+
+        function resetView() {
+            map.setView(DATA.center, DATA.zoom);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+        }
+
+        function hideLoading() {
+            setTimeout(() => {
+                document.getElementById('loading').classList.remove('show');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
