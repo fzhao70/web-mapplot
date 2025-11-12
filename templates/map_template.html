@@ -344,6 +344,10 @@
                     <label for="opacity-slider">Opacity:</label>
                     <input type="range" id="opacity-slider" min="0" max="100" value="70">
                 </div>
+                <div class="control-group" id="vector-scale-control" style="display: none;">
+                    <label for="vector-scale-slider">Vector Scale: <span id="vector-scale-value">1.0</span>x</label>
+                    <input type="range" id="vector-scale-slider" min="0.1" max="5.0" value="1.0" step="0.1">
+                </div>
                 <button class="button" id="reset-view">Reset View</button>
             </div>
         </div>
@@ -383,6 +387,7 @@
         let visualizationLayers = {};  // Changed to object to store multiple layers
         let layerVisibility = {};      // Track which layers are visible
         let currentOpacity = 0.7;      // Default opacity (matches slider default of 70)
+        let currentVectorScale = 1.0;  // Default vector scale
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -480,6 +485,12 @@
 
             document.getElementById('opacity-slider').addEventListener('input', function() {
                 updateOpacity(this.value / 100);
+            });
+
+            document.getElementById('vector-scale-slider').addEventListener('input', function() {
+                currentVectorScale = parseFloat(this.value);
+                document.getElementById('vector-scale-value').textContent = currentVectorScale.toFixed(1);
+                updateVectorLayers();
             });
 
             document.getElementById('play-pause').addEventListener('click', togglePlay);
@@ -583,6 +594,42 @@
                     map.removeLayer(visualizationLayers[varName]);
                 }
             }
+
+            // Show/hide vector scale control based on visible vector layers
+            updateVectorScaleVisibility();
+        }
+
+        function updateVectorScaleVisibility() {
+            // Check if any visible layer is a vector or stream plot
+            let hasVectorLayer = false;
+            Object.keys(DATA.variables).forEach(varName => {
+                if (layerVisibility[varName]) {
+                    const variable = DATA.variables[varName];
+                    if (variable.plot_type === 'vector' || variable.plot_type === 'stream') {
+                        hasVectorLayer = true;
+                    }
+                }
+            });
+
+            // Show/hide the vector scale control
+            const control = document.getElementById('vector-scale-control');
+            if (hasVectorLayer) {
+                control.style.display = 'block';
+            } else {
+                control.style.display = 'none';
+            }
+        }
+
+        function updateVectorLayers() {
+            // Re-render only vector and stream layers
+            Object.keys(DATA.variables).forEach(varName => {
+                if (layerVisibility[varName]) {
+                    const variable = DATA.variables[varName];
+                    if (variable.plot_type === 'vector' || variable.plot_type === 'stream') {
+                        renderLayer(varName);
+                    }
+                }
+            });
         }
 
         function renderLayer(varName) {
@@ -718,8 +765,9 @@
 
                         const color = colorScale(magnitude);
 
-                        // Calculate arrow end point
-                        const scale = 0.5;
+                        // Calculate arrow end point with combined scale
+                        const baseScale = 0.5;
+                        const scale = baseScale * variable.vector_scale * currentVectorScale;
                         const dx = u[i][j] * scale;
                         const dy = v[i][j] * scale;
 

@@ -51,6 +51,7 @@ class MapPlot:
                      levels: int = 10,
                      vmin: Optional[float] = None,
                      vmax: Optional[float] = None,
+                     vector_scale: float = 1.0,
                      units: str = ''):
         """
         Add a variable to the visualization.
@@ -69,6 +70,7 @@ class MapPlot:
             levels: Number of contour levels
             vmin: Minimum value for color scale (auto if None)
             vmax: Maximum value for color scale (auto if None)
+            vector_scale: Scale factor for vector/stream arrows (default: 1.0)
             units: Units for the variable
         """
 
@@ -128,6 +130,7 @@ class MapPlot:
             'levels': levels,
             'vmin': vmin,
             'vmax': vmax,
+            'vector_scale': vector_scale,
             'units': units,
             'shape': list(data.shape)
         }

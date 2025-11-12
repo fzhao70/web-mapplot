@@ -116,6 +116,40 @@ mp.add_variable(
 mp.save_html('wind_field.html')
 ```
 
+#### Control Vector Arrow Size
+
+Use the `vector_scale` parameter to adjust arrow lengths:
+
+```python
+# Weak wind - amplify arrows for visibility
+mp.add_variable(
+    name='Weak Wind',
+    lon=lon2d,
+    lat=lat2d,
+    data=wind_speed,
+    plot_type='vector',
+    u_component=u,
+    v_component=v,
+    vector_scale=3.0,  # 3x larger arrows
+    units='m/s'
+)
+
+# Strong wind - reduce arrows to avoid clutter
+mp.add_variable(
+    name='Strong Wind',
+    lon=lon2d,
+    lat=lat2d,
+    data=wind_speed,
+    plot_type='vector',
+    u_component=u,
+    v_component=v,
+    vector_scale=0.5,  # 0.5x smaller arrows
+    units='m/s'
+)
+```
+
+The web interface also includes an interactive slider to adjust vector scale in real-time (appears when vector/stream layers are visible).
+
 ### Multiple Variables
 
 ```python
@@ -235,6 +269,7 @@ Add a variable to visualize.
 - `levels` (int): Number of contour levels (default: 10)
 - `vmin` (float): Minimum value for color scale (auto if None)
 - `vmax` (float): Maximum value for color scale (auto if None)
+- `vector_scale` (float): Scale factor for vector/stream arrows (default: 1.0)
 - `units` (str): Units for the variable
 
 #### `save_html(filename)`
@@ -304,6 +339,9 @@ The generated web interface includes:
   - Time slider
   - Adjustable animation speed
 - **Opacity control** for all visualization layers
+- **Vector scale control** - adjust arrow size for vector/stream plots in real-time
+  - Dynamic slider (0.1x to 5.0x) appears when vector layers are visible
+  - Affects all visible vector and stream field layers
 - **Color bar** showing value range for primary variable
 - **Interactive tooltips** on hover
 - **Reset view** button
@@ -315,6 +353,7 @@ See the `examples/` directory for complete working examples:
 - `example_basic.py` - Simple filled contour plot
 - `example_timeseries.py` - Animated time-series data
 - `example_vector_field.py` - Wind velocity vectors
+- `example_vector_scale.py` - Control vector arrow size with vector_scale parameter
 - `example_multiple_variables.py` - Multiple variables with switching
 - `example_custom_range.py` - Custom vmin/vmax color scale ranges
 - `example_layer_overlay.py` - Overlaying multiple layers simultaneously
