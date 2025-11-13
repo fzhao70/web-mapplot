@@ -4,13 +4,17 @@ A Python library for creating interactive web-based geographical visualizations 
 
 ## Features
 
-- 🗺️ **Interactive base maps** using Leaflet.js
+- 🗺️ **Interactive base maps** using Leaflet.js with 5 map styles
 - 📊 **Multiple visualization types**:
-  - Scatter plots
+  - Scatter plots (colored by value)
   - Contour plots
   - Filled contour plots
   - Vector fields
   - Stream fields
+  - **NEW:** Hexbin plots (for large point datasets)
+  - **NEW:** Heatmaps with clustering
+  - **NEW:** Voronoi diagrams (nearest-neighbor partitioning)
+  - **NEW:** Isosurface rendering (3D-like layered effects)
 - ⏱️ **Time-series support** with animation controls
 - 🔄 **Variable switching** - visualize multiple fields in one plot
 - 📁 **Dual output modes**:
@@ -18,17 +22,45 @@ A Python library for creating interactive web-based geographical visualizations 
   - Interactive web server
 - 🎨 **Multiple color schemes** (viridis, plasma, jet, rainbow, cool, hot)
 - 🎯 **Easy Python interface**
+- ✨ **Modern UI with glassmorphism effects**
+- 🌓 **Dark mode toggle** with theme persistence
+- 🔍 **Location search** with geocoding
+- ⛶ **Fullscreen mode** for immersive viewing
+- 🗺️ **Floating mini-map** for navigation overview
+- 🔄 **Auto-refresh** for real-time monitoring with visual countdown
+- 🗺️ **Custom projections** (Web Mercator, equirectangular, world Mercator, simple)
+- 📁 **Collapsible control panels** to save screen space
+- ✨ **Smooth time interpolation** for fluid animations
 
 ## Installation
 
+### Option 1: Install from PyPI (Recommended)
+
 ```bash
-pip install -r requirements.txt
+pip install web-mapplot
+```
+
+### Option 2: Install from source
+
+```bash
+git clone https://github.com/yourusername/web-mapplot.git
+cd web-mapplot
+pip install -e .
+```
+
+### Option 3: Install with development dependencies
+
+```bash
+pip install web-mapplot[dev]
 ```
 
 ### Requirements
 
-- numpy
-- flask (optional, for web server mode)
+- Python >= 3.7
+- numpy >= 1.20.0
+- flask >= 2.0.0 (for web server mode)
+
+All dependencies are automatically installed with pip.
 
 ## Quick Start
 
@@ -116,6 +148,40 @@ mp.add_variable(
 mp.save_html('wind_field.html')
 ```
 
+#### Control Vector Arrow Size
+
+Use the `vector_scale` parameter to adjust arrow lengths:
+
+```python
+# Weak wind - amplify arrows for visibility
+mp.add_variable(
+    name='Weak Wind',
+    lon=lon2d,
+    lat=lat2d,
+    data=wind_speed,
+    plot_type='vector',
+    u_component=u,
+    v_component=v,
+    vector_scale=3.0,  # 3x larger arrows
+    units='m/s'
+)
+
+# Strong wind - reduce arrows to avoid clutter
+mp.add_variable(
+    name='Strong Wind',
+    lon=lon2d,
+    lat=lat2d,
+    data=wind_speed,
+    plot_type='vector',
+    u_component=u,
+    v_component=v,
+    vector_scale=0.5,  # 0.5x smaller arrows
+    units='m/s'
+)
+```
+
+The web interface also includes an interactive slider to adjust vector scale in real-time (appears when vector/stream layers are visible).
+
 ### Multiple Variables
 
 ```python
@@ -199,11 +265,153 @@ mp.show(port=5000, debug=False)
 # Open http://localhost:5000 in your browser
 ```
 
+### Custom Projections
+
+Choose different map projections for your visualization:
+
+```python
+# Web Mercator (default) - Standard web maps
+mp = MapPlot(
+    title="Temperature Map",
+    projection="EPSG3857"  # Default
+)
+
+# Equirectangular - Simple lat/lon grid (good for scientific data)
+mp = MapPlot(
+    title="Climate Data",
+    projection="EPSG4326"  # Simple CRS
+)
+
+# World Mercator - Alternative Mercator
+mp = MapPlot(
+    title="Navigation Map",
+    projection="EPSG3395"
+)
+
+# Simple CRS - For non-geographic maps
+mp = MapPlot(
+    title="Custom Coordinates",
+    projection="Simple"
+)
+```
+
+**When to use different projections:**
+- **EPSG3857** (Web Mercator): General web maps, navigation, default choice
+- **EPSG4326** (Equirectangular): Scientific data, climate models, equal spacing
+- **EPSG3395** (World Mercator): Navigation, shipping routes
+- **Simple**: Non-geographic data, custom coordinate systems
+
+### Collapsible Control Panels
+
+All control sections can be collapsed to save screen space:
+
+```python
+mp = MapPlot(title="Clean Interface Demo")
+# ... add variables ...
+mp.save_html('dashboard.html')
+```
+
+**Features:**
+- Click any section header to collapse/expand
+- Arrow indicators show current state (▼ = expanded, ▶ = collapsed)
+- Smooth animations when toggling
+- Perfect for mobile/tablet viewing
+- Reduces clutter on busy dashboards
+
+### Smooth Time Interpolation
+
+Enable smooth blending between animation frames:
+
+```python
+# Standard animation (discrete jumps)
+mp = MapPlot(
+    title="Standard Animation",
+    interpolate_frames=False  # Default
+)
+
+# Smooth animation (blended frames)
+mp = MapPlot(
+    title="Smooth Animation",
+    interpolate_frames=True  # Enable interpolation
+)
+
+mp.add_variable(
+    name='Temperature',
+    lon=lon2d,
+    lat=lat2d,
+    data=temperature_3d,
+    timestamps=timestamps,
+    ...
+)
+```
+
+**When to use interpolation:**
+- ✓ Presentations - smoother appearance
+- ✓ Few time steps - fills in gaps visually
+- ✓ Continuous phenomena (temperature, pressure)
+- ✗ Scientific analysis - need exact values
+- ✗ Discrete events (rain/no rain)
+
+### Auto-Refresh for Real-Time Monitoring
+
+Enable automatic page refreshing for real-time data visualization:
+
+```python
+# Create map with auto-refresh every 30 seconds
+mp = MapPlot(
+    title="Real-Time Temperature Monitoring",
+    auto_refresh=30  # Refresh every 30 seconds
+)
+
+mp.add_variable(
+    name='Temperature',
+    lon=lon2d,
+    lat=lat2d,
+    data=current_temperature_data,  # Fetch from live source
+    plot_type='filled_contour',
+    colormap='jet',
+    units='°C'
+)
+
+mp.save_html('live_dashboard.html')
+```
+
+**Features:**
+- Visual countdown indicator in header showing time until next refresh
+- Animated spinner during refresh
+- Configurable refresh interval
+- Perfect for monitoring dashboards, sensor networks, and live data feeds
+
+**Production Setup:**
+For continuous real-time monitoring, regenerate the HTML file with updated data:
+
+```python
+import time
+from datetime import datetime
+
+while True:
+    # Fetch latest data from API/database
+    data = fetch_latest_data()
+
+    # Create visualization with current timestamp
+    mp = MapPlot(
+        title=f"Live Data - Updated: {datetime.now().strftime('%H:%M:%S')}",
+        auto_refresh=30
+    )
+    mp.add_variable('Sensor Data', lon, lat, data, ...)
+
+    # Overwrite HTML file with fresh data
+    mp.save_html('dashboard.html')
+
+    # Wait for refresh interval
+    time.sleep(30)
+```
+
 ## API Reference
 
 ### MapPlot Class
 
-#### `__init__(title, center, zoom)`
+#### `__init__(title, center, zoom, auto_refresh, projection, interpolate_frames)`
 
 Initialize a MapPlot instance.
 
@@ -211,6 +419,13 @@ Initialize a MapPlot instance.
 - `title` (str): Title for the visualization
 - `center` (tuple): (lat, lon) center point. If None, auto-calculated from data
 - `zoom` (int): Initial zoom level (1-18)
+- `auto_refresh` (int, optional): Auto-refresh interval in seconds. When set, the page automatically reloads at this interval for real-time data updates. Includes visual countdown indicator. Useful for live monitoring dashboards. Default: None (disabled)
+- `projection` (str, optional): Coordinate reference system/projection. Options:
+  - `'EPSG3857'`: Web Mercator (default, used by Google Maps/OSM)
+  - `'EPSG4326'`: Simple equirectangular/Plate Carrée projection
+  - `'EPSG3395'`: World Mercator projection
+  - `'Simple'`: Simple CRS for non-geographic maps
+- `interpolate_frames` (bool, optional): Enable smooth interpolation between animation frames. When True, data values are linearly blended during transitions for fluid animations. Default: False
 
 #### `add_variable(name, lon, lat, data, **kwargs)`
 
@@ -222,11 +437,15 @@ Add a variable to visualize.
 - `lat` (ndarray): 2D array of latitudes
 - `data` (ndarray): 2D array or 3D array (time, lat, lon)
 - `plot_type` (str): Visualization type
-  - `'scatter'`: Scatter plot
+  - `'scatter'`: Colored scatter plot
   - `'contour'`: Contour lines
   - `'filled_contour'`: Filled contours (default)
   - `'vector'`: Vector arrows
   - `'stream'`: Streamlines
+  - `'hexbin'`: Hexagonal binning (aggregates points into hexagons)
+  - `'heatmap'`: Intensity-based heatmap with clustering
+  - `'voronoi'`: Voronoi diagram (nearest-neighbor regions)
+  - `'isosurface'`: Multi-layer 3D-like rendering
 - `timestamps` (list): List of datetime objects (required for 3D data)
 - `u_component` (ndarray): U component for vector/stream (required for vector plots)
 - `v_component` (ndarray): V component for vector/stream (required for vector plots)
@@ -235,6 +454,7 @@ Add a variable to visualize.
 - `levels` (int): Number of contour levels (default: 10)
 - `vmin` (float): Minimum value for color scale (auto if None)
 - `vmax` (float): Maximum value for color scale (auto if None)
+- `vector_scale` (float): Scale factor for vector/stream arrows (default: 1.0)
 - `units` (str): Units for the variable
 
 #### `save_html(filename)`
@@ -292,39 +512,88 @@ data = magnitude (or any scalar field for coloring)
 
 The generated web interface includes:
 
+### Core Navigation
 - **Pan and zoom** on the map
+- **🔍 Location search** - geocoding to jump to any location (e.g., "London, UK", "Tokyo, Japan")
+- **⛶ Fullscreen mode** - immersive viewing experience
+- **🗺️ Floating mini-map** - overview navigation in top-right corner (collapsible)
+- **📁 Collapsible panels** - Click section headers to collapse/expand control panels
+- **Reset view** button
+
+### Visualization Controls
 - **Variable selection** dropdown to switch between fields
 - **Layer overlay controls** - toggle multiple variables on/off to view them simultaneously
   - Individual checkboxes for each layer
   - Show All / Hide All buttons
   - Overlay filled contours with contour lines, vectors, or other layers
+- **Opacity control** for all visualization layers (with glassmorphism effect)
+- **Vector scale control** - adjust arrow size for vector/stream plots in real-time
+  - Dynamic slider (0.1x to 5.0x) appears when vector layers are visible
+  - Affects all visible vector and stream field layers
+- **Color bar** showing value range for primary variable
+
+### Time-Series Controls
 - **Time controls** for animated data:
   - Play/Pause animation
   - Step forward/backward
   - Time slider
   - Adjustable animation speed
-- **Opacity control** for all visualization layers
-- **Color bar** showing value range for primary variable
+
+### Appearance
+- **🌓 Dark mode toggle** - switch between light and dark themes (preference saved)
+- **Base map selection** - choose from multiple background maps:
+  - OpenStreetMap (default) - detailed street map
+  - Topographic - terrain with elevation contours
+  - Satellite - aerial/satellite imagery
+  - Light (CartoDB) - minimal light background
+  - Dark (CartoDB) - dark theme background
+- **✨ Glassmorphism effects** on control panels and colorbar
 - **Interactive tooltips** on hover
-- **Reset view** button
 
 ## Examples
 
 See the `examples/` directory for complete working examples:
 
+### 🌟 Comprehensive Demo
+- **`comprehensive_demo.py`** - **MUST SEE!** Complete showcase of ALL features:
+  - 8 different plot types simultaneously
+  - Time-series animation with smooth interpolation
+  - Custom projection (EPSG4326)
+  - Auto-refresh enabled
+  - Multiple layer overlays
+  - All color schemes
+  - Perfect starting point to understand the library!
+
+### Basic Examples
 - `example_basic.py` - Simple filled contour plot
 - `example_timeseries.py` - Animated time-series data
 - `example_vector_field.py` - Wind velocity vectors
 - `example_multiple_variables.py` - Multiple variables with switching
+
+### Advanced Plot Types
+- `example_hexbin.py` - **NEW!** Hexagonal binning for large point datasets
+- `example_heatmap.py` - **NEW!** Heatmap with clustering visualization
+- `example_voronoi.py` - **NEW!** Voronoi diagram partitioning
+- `example_isosurface.py` - **NEW!** 3D-like isosurface rendering
+- `example_all_plot_types.py` - **NEW!** Showcase of all 8 plot types
+
+### Feature Demonstrations
+- `example_vector_scale.py` - Control vector arrow size with vector_scale parameter
 - `example_custom_range.py` - Custom vmin/vmax color scale ranges
 - `example_layer_overlay.py` - Overlaying multiple layers simultaneously
+- `example_basemap_selection.py` - Switch between different base maps (OSM, topo, satellite)
+- `example_advanced_features.py` - **NEW!** Dark mode, search, fullscreen, and UI features
+- `example_auto_refresh.py` - **NEW!** Auto-refresh for real-time monitoring dashboards
+- `example_projections.py` - **NEW!** Custom projection comparison (Web Mercator, equirectangular, etc.)
+- `example_collapsible_panels.py` - **NEW!** Collapsible control panels for clean interface
+- `example_smooth_interpolation.py` - **NEW!** Smooth time interpolation for fluid animations
 - `example_webserver.py` - Using web server mode
 
 Run any example:
 
 ```bash
 cd examples
-python example_basic.py
+python example_hexbin.py  # Try the new hexbin plot type!
 ```
 
 ## Browser Compatibility
