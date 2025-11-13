@@ -400,29 +400,36 @@
             color: var(--text-primary);
         }
 
-        #colorbar {
+        #colorbars-container {
             position: absolute;
             bottom: 30px;
             right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 250px;
+        }
+
+        .colorbar {
             background: var(--control-panel-bg);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            padding: 15px;
+            padding: 12px 15px;
             border-radius: 5px;
             box-shadow: 0 2px 10px var(--shadow-strong);
-            z-index: 1000;
             min-width: 200px;
             border: 1px solid var(--control-panel-border);
         }
 
-        #colorbar-title {
+        .colorbar-title {
             font-size: 12px;
             font-weight: 600;
             margin-bottom: 8px;
             color: var(--text-primary);
         }
 
-        #colorbar-gradient {
+        .colorbar-gradient {
             height: 20px;
             border-radius: 3px;
             margin-bottom: 5px;
@@ -599,13 +606,8 @@
             </div>
         </div>
 
-        <div id="colorbar">
-            <div id="colorbar-title">Value</div>
-            <div id="colorbar-gradient"></div>
-            <div class="colorbar-labels">
-                <span id="colorbar-min">0</span>
-                <span id="colorbar-max">100</span>
-            </div>
+        <div id="colorbars-container">
+            <!-- Colorbars will be dynamically added here for each visible layer -->
         </div>
     </div>
 
@@ -983,7 +985,7 @@
                 document.getElementById('time-controls').style.display = 'none';
             }
 
-            updateColorbar();
+            updateColorbars();
 
             if (layerVisibility[varName]) {
                 renderLayer(varName);
@@ -1021,6 +1023,7 @@
             }
 
             updateVectorScaleVisibility();
+            updateColorbars();
         }
 
         function updateVectorScaleVisibility() {
@@ -1545,23 +1548,61 @@
             };
         }
 
-        function updateColorbar() {
-            document.getElementById('colorbar-title').textContent =
-                `${document.getElementById('variable-select').value} (${currentVariable.units})`;
+        function updateColorbars() {
+            const container = document.getElementById('colorbars-container');
+            container.innerHTML = ''; // Clear existing colorbars
 
-            const gradient = getColorScale(currentVariable);
-            const steps = 20;
-            let gradientCSS = 'linear-gradient(to right';
-            for (let i = 0; i <= steps; i++) {
-                const value = currentVariable.vmin + (currentVariable.vmax - currentVariable.vmin) * i / steps;
-                const color = gradient(value);
-                gradientCSS += `, ${color}`;
-            }
-            gradientCSS += ')';
+            // Create a colorbar for each visible layer
+            Object.keys(DATA.variables).forEach(varName => {
+                if (layerVisibility[varName]) {
+                    const variable = DATA.variables[varName];
 
-            document.getElementById('colorbar-gradient').style.background = gradientCSS;
-            document.getElementById('colorbar-min').textContent = currentVariable.vmin.toFixed(2);
-            document.getElementById('colorbar-max').textContent = currentVariable.vmax.toFixed(2);
+                    // Create colorbar element
+                    const colorbar = document.createElement('div');
+                    colorbar.className = 'colorbar';
+                    colorbar.id = `colorbar-${varName.replace(/[^a-zA-Z0-9]/g, '_')}`;
+
+                    // Create title
+                    const title = document.createElement('div');
+                    title.className = 'colorbar-title';
+                    title.textContent = `${varName} (${variable.units})`;
+
+                    // Create gradient
+                    const gradientDiv = document.createElement('div');
+                    gradientDiv.className = 'colorbar-gradient';
+
+                    const gradient = getColorScale(variable);
+                    const steps = 20;
+                    let gradientCSS = 'linear-gradient(to right';
+                    for (let i = 0; i <= steps; i++) {
+                        const value = variable.vmin + (variable.vmax - variable.vmin) * i / steps;
+                        const color = gradient(value);
+                        gradientCSS += `, ${color}`;
+                    }
+                    gradientCSS += ')';
+                    gradientDiv.style.background = gradientCSS;
+
+                    // Create labels
+                    const labels = document.createElement('div');
+                    labels.className = 'colorbar-labels';
+
+                    const minLabel = document.createElement('span');
+                    minLabel.textContent = variable.vmin.toFixed(2);
+
+                    const maxLabel = document.createElement('span');
+                    maxLabel.textContent = variable.vmax.toFixed(2);
+
+                    labels.appendChild(minLabel);
+                    labels.appendChild(maxLabel);
+
+                    // Assemble colorbar
+                    colorbar.appendChild(title);
+                    colorbar.appendChild(gradientDiv);
+                    colorbar.appendChild(labels);
+
+                    container.appendChild(colorbar);
+                }
+            });
         }
 
         function updateOpacity(opacity) {
