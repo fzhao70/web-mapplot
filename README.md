@@ -4,13 +4,17 @@ A Python library for creating interactive web-based geographical visualizations 
 
 ## Features
 
-- 🗺️ **Interactive base maps** using Leaflet.js
+- 🗺️ **Interactive base maps** using Leaflet.js with 5 map styles
 - 📊 **Multiple visualization types**:
-  - Scatter plots
+  - Scatter plots (colored by value)
   - Contour plots
   - Filled contour plots
   - Vector fields
   - Stream fields
+  - **NEW:** Hexbin plots (for large point datasets)
+  - **NEW:** Heatmaps with clustering
+  - **NEW:** Voronoi diagrams (nearest-neighbor partitioning)
+  - **NEW:** Isosurface rendering (3D-like layered effects)
 - ⏱️ **Time-series support** with animation controls
 - 🔄 **Variable switching** - visualize multiple fields in one plot
 - 📁 **Dual output modes**:
@@ -18,6 +22,11 @@ A Python library for creating interactive web-based geographical visualizations 
   - Interactive web server
 - 🎨 **Multiple color schemes** (viridis, plasma, jet, rainbow, cool, hot)
 - 🎯 **Easy Python interface**
+- ✨ **Modern UI with glassmorphism effects**
+- 🌓 **Dark mode toggle** with theme persistence
+- 🔍 **Location search** with geocoding
+- ⛶ **Fullscreen mode** for immersive viewing
+- 🗺️ **Floating mini-map** for navigation overview
 
 ## Installation
 
@@ -256,11 +265,15 @@ Add a variable to visualize.
 - `lat` (ndarray): 2D array of latitudes
 - `data` (ndarray): 2D array or 3D array (time, lat, lon)
 - `plot_type` (str): Visualization type
-  - `'scatter'`: Scatter plot
+  - `'scatter'`: Colored scatter plot
   - `'contour'`: Contour lines
   - `'filled_contour'`: Filled contours (default)
   - `'vector'`: Vector arrows
   - `'stream'`: Streamlines
+  - `'hexbin'`: Hexagonal binning (aggregates points into hexagons)
+  - `'heatmap'`: Intensity-based heatmap with clustering
+  - `'voronoi'`: Voronoi diagram (nearest-neighbor regions)
+  - `'isosurface'`: Multi-layer 3D-like rendering
 - `timestamps` (list): List of datetime objects (required for 3D data)
 - `u_component` (ndarray): U component for vector/stream (required for vector plots)
 - `v_component` (ndarray): V component for vector/stream (required for vector plots)
@@ -327,50 +340,73 @@ data = magnitude (or any scalar field for coloring)
 
 The generated web interface includes:
 
+### Core Navigation
 - **Pan and zoom** on the map
+- **🔍 Location search** - geocoding to jump to any location (e.g., "London, UK", "Tokyo, Japan")
+- **⛶ Fullscreen mode** - immersive viewing experience
+- **🗺️ Floating mini-map** - overview navigation in top-right corner (collapsible)
+- **Reset view** button
+
+### Visualization Controls
 - **Variable selection** dropdown to switch between fields
 - **Layer overlay controls** - toggle multiple variables on/off to view them simultaneously
   - Individual checkboxes for each layer
   - Show All / Hide All buttons
   - Overlay filled contours with contour lines, vectors, or other layers
+- **Opacity control** for all visualization layers (with glassmorphism effect)
+- **Vector scale control** - adjust arrow size for vector/stream plots in real-time
+  - Dynamic slider (0.1x to 5.0x) appears when vector layers are visible
+  - Affects all visible vector and stream field layers
+- **Color bar** showing value range for primary variable
+
+### Time-Series Controls
 - **Time controls** for animated data:
   - Play/Pause animation
   - Step forward/backward
   - Time slider
   - Adjustable animation speed
-- **Base map selection** - choose from multiple background maps
+
+### Appearance
+- **🌓 Dark mode toggle** - switch between light and dark themes (preference saved)
+- **Base map selection** - choose from multiple background maps:
   - OpenStreetMap (default) - detailed street map
   - Topographic - terrain with elevation contours
   - Satellite - aerial/satellite imagery
   - Light (CartoDB) - minimal light background
   - Dark (CartoDB) - dark theme background
-- **Opacity control** for all visualization layers
-- **Vector scale control** - adjust arrow size for vector/stream plots in real-time
-  - Dynamic slider (0.1x to 5.0x) appears when vector layers are visible
-  - Affects all visible vector and stream field layers
-- **Color bar** showing value range for primary variable
+- **✨ Glassmorphism effects** on control panels and colorbar
 - **Interactive tooltips** on hover
-- **Reset view** button
 
 ## Examples
 
 See the `examples/` directory for complete working examples:
 
+### Basic Examples
 - `example_basic.py` - Simple filled contour plot
 - `example_timeseries.py` - Animated time-series data
 - `example_vector_field.py` - Wind velocity vectors
-- `example_vector_scale.py` - Control vector arrow size with vector_scale parameter
 - `example_multiple_variables.py` - Multiple variables with switching
+
+### Advanced Plot Types
+- `example_hexbin.py` - **NEW!** Hexagonal binning for large point datasets
+- `example_heatmap.py` - **NEW!** Heatmap with clustering visualization
+- `example_voronoi.py` - **NEW!** Voronoi diagram partitioning
+- `example_isosurface.py` - **NEW!** 3D-like isosurface rendering
+- `example_all_plot_types.py` - **NEW!** Showcase of all 8 plot types
+
+### Feature Demonstrations
+- `example_vector_scale.py` - Control vector arrow size with vector_scale parameter
 - `example_custom_range.py` - Custom vmin/vmax color scale ranges
 - `example_layer_overlay.py` - Overlaying multiple layers simultaneously
 - `example_basemap_selection.py` - Switch between different base maps (OSM, topo, satellite)
+- `example_advanced_features.py` - **NEW!** Dark mode, search, fullscreen, and UI features
 - `example_webserver.py` - Using web server mode
 
 Run any example:
 
 ```bash
 cd examples
-python example_basic.py
+python example_hexbin.py  # Try the new hexbin plot type!
 ```
 
 ## Browser Compatibility
