@@ -34,14 +34,33 @@ A Python library for creating interactive web-based geographical visualizations 
 
 ## Installation
 
+### Option 1: Install from PyPI (Recommended)
+
 ```bash
-pip install -r requirements.txt
+pip install web-mapplot
+```
+
+### Option 2: Install from source
+
+```bash
+git clone https://github.com/yourusername/web-mapplot.git
+cd web-mapplot
+pip install -e .
+```
+
+### Option 3: Install with development dependencies
+
+```bash
+pip install web-mapplot[dev]
 ```
 
 ### Requirements
 
-- numpy
-- flask (optional, for web server mode)
+- Python >= 3.7
+- numpy >= 1.20.0
+- flask >= 2.0.0 (for web server mode)
+
+All dependencies are automatically installed with pip.
 
 ## Quick Start
 
@@ -534,6 +553,16 @@ The generated web interface includes:
 ## Examples
 
 See the `examples/` directory for complete working examples:
+
+### 🌟 Comprehensive Demo
+- **`comprehensive_demo.py`** - **MUST SEE!** Complete showcase of ALL features:
+  - 8 different plot types simultaneously
+  - Time-series animation with smooth interpolation
+  - Custom projection (EPSG4326)
+  - Auto-refresh enabled
+  - Multiple layer overlays
+  - All color schemes
+  - Perfect starting point to understand the library!
 
 ### Basic Examples
 - `example_basic.py` - Simple filled contour plot
