@@ -96,6 +96,30 @@
             align-items: center;
         }
 
+        #auto-refresh-indicator {
+            display: none;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: white;
+        }
+
+        #auto-refresh-indicator.active {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .refresh-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
         .icon-button {
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -437,6 +461,10 @@
     <div id="header">
         <h1>{{TITLE}}</h1>
         <div class="header-controls">
+            <div id="auto-refresh-indicator">
+                <div class="refresh-spinner"></div>
+                <span id="refresh-countdown">Refreshing in <span id="countdown-value">--</span>s</span>
+            </div>
             <button id="theme-toggle" class="icon-button" title="Toggle Dark Mode">
                 <span id="theme-icon">🌙</span>
             </button>
@@ -572,6 +600,11 @@
             if (savedTheme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 document.getElementById('theme-icon').textContent = '☀️';
+            }
+
+            // Setup auto-refresh if enabled
+            if (DATA.auto_refresh && DATA.auto_refresh > 0) {
+                setupAutoRefresh(DATA.auto_refresh);
             }
         });
 
@@ -1529,6 +1562,37 @@
             setTimeout(() => {
                 document.getElementById('loading').classList.remove('show');
             }, 300);
+        }
+
+        function setupAutoRefresh(intervalSeconds) {
+            const indicator = document.getElementById('auto-refresh-indicator');
+            const countdownValue = document.getElementById('countdown-value');
+
+            // Show the indicator
+            indicator.classList.add('active');
+
+            let remainingSeconds = intervalSeconds;
+
+            // Update countdown every second
+            const countdownInterval = setInterval(() => {
+                remainingSeconds--;
+                countdownValue.textContent = remainingSeconds;
+
+                if (remainingSeconds <= 0) {
+                    remainingSeconds = intervalSeconds;
+                }
+            }, 1000);
+
+            // Set initial countdown
+            countdownValue.textContent = intervalSeconds;
+
+            // Auto-refresh at specified interval
+            setInterval(() => {
+                console.log('Auto-refreshing page...');
+                location.reload();
+            }, intervalSeconds * 1000);
+
+            console.log(`Auto-refresh enabled: ${intervalSeconds} seconds`);
         }
     </script>
 </body>

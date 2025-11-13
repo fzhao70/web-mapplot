@@ -27,6 +27,7 @@ A Python library for creating interactive web-based geographical visualizations 
 - 🔍 **Location search** with geocoding
 - ⛶ **Fullscreen mode** for immersive viewing
 - 🗺️ **Floating mini-map** for navigation overview
+- 🔄 **Auto-refresh** for real-time monitoring with visual countdown
 
 ## Installation
 
@@ -242,11 +243,66 @@ mp.show(port=5000, debug=False)
 # Open http://localhost:5000 in your browser
 ```
 
+### Auto-Refresh for Real-Time Monitoring
+
+Enable automatic page refreshing for real-time data visualization:
+
+```python
+# Create map with auto-refresh every 30 seconds
+mp = MapPlot(
+    title="Real-Time Temperature Monitoring",
+    auto_refresh=30  # Refresh every 30 seconds
+)
+
+mp.add_variable(
+    name='Temperature',
+    lon=lon2d,
+    lat=lat2d,
+    data=current_temperature_data,  # Fetch from live source
+    plot_type='filled_contour',
+    colormap='jet',
+    units='°C'
+)
+
+mp.save_html('live_dashboard.html')
+```
+
+**Features:**
+- Visual countdown indicator in header showing time until next refresh
+- Animated spinner during refresh
+- Configurable refresh interval
+- Perfect for monitoring dashboards, sensor networks, and live data feeds
+
+**Production Setup:**
+For continuous real-time monitoring, regenerate the HTML file with updated data:
+
+```python
+import time
+from datetime import datetime
+
+while True:
+    # Fetch latest data from API/database
+    data = fetch_latest_data()
+
+    # Create visualization with current timestamp
+    mp = MapPlot(
+        title=f"Live Data - Updated: {datetime.now().strftime('%H:%M:%S')}",
+        auto_refresh=30
+    )
+    mp.add_variable('Sensor Data', lon, lat, data, ...)
+
+    # Overwrite HTML file with fresh data
+    mp.save_html('dashboard.html')
+
+    # Wait for refresh interval
+    time.sleep(30)
+```
+
 ## API Reference
 
 ### MapPlot Class
 
-#### `__init__(title, center, zoom)`
+#### `__init__(title, center, zoom, auto_refresh)`
 
 Initialize a MapPlot instance.
 
@@ -254,6 +310,7 @@ Initialize a MapPlot instance.
 - `title` (str): Title for the visualization
 - `center` (tuple): (lat, lon) center point. If None, auto-calculated from data
 - `zoom` (int): Initial zoom level (1-18)
+- `auto_refresh` (int, optional): Auto-refresh interval in seconds. When set, the page automatically reloads at this interval for real-time data updates. Includes visual countdown indicator. Useful for live monitoring dashboards. Default: None (disabled)
 
 #### `add_variable(name, lon, lat, data, **kwargs)`
 
@@ -400,6 +457,7 @@ See the `examples/` directory for complete working examples:
 - `example_layer_overlay.py` - Overlaying multiple layers simultaneously
 - `example_basemap_selection.py` - Switch between different base maps (OSM, topo, satellite)
 - `example_advanced_features.py` - **NEW!** Dark mode, search, fullscreen, and UI features
+- `example_auto_refresh.py` - **NEW!** Auto-refresh for real-time monitoring dashboards
 - `example_webserver.py` - Using web server mode
 
 Run any example:

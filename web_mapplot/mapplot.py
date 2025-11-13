@@ -24,7 +24,7 @@ class MapPlot:
     - Multiple variables with switching capability
     """
 
-    def __init__(self, title: str = "Map Visualization", center: Tuple[float, float] = None, zoom: int = 4):
+    def __init__(self, title: str = "Map Visualization", center: Tuple[float, float] = None, zoom: int = 4, auto_refresh: Optional[int] = None):
         """
         Initialize MapPlot instance.
 
@@ -32,10 +32,14 @@ class MapPlot:
             title: Title for the visualization
             center: (lat, lon) center point for the map. If None, auto-calculated from data
             zoom: Initial zoom level (1-18)
+            auto_refresh: Auto-refresh interval in seconds (None to disable).
+                         When set, the page will reload at this interval for real-time data updates.
+                         Useful for live data feeds and monitoring dashboards.
         """
         self.title = title
         self.center = center
         self.zoom = zoom
+        self.auto_refresh = auto_refresh
         self.variables = {}
 
     def add_variable(self,
@@ -152,6 +156,7 @@ class MapPlot:
             'title': self.title,
             'center': self.center,
             'zoom': self.zoom,
+            'auto_refresh': self.auto_refresh,
             'variables': self.variables
         })
 
