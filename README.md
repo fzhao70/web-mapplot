@@ -28,6 +28,9 @@ A Python library for creating interactive web-based geographical visualizations 
 - ⛶ **Fullscreen mode** for immersive viewing
 - 🗺️ **Floating mini-map** for navigation overview
 - 🔄 **Auto-refresh** for real-time monitoring with visual countdown
+- 🗺️ **Custom projections** (Web Mercator, equirectangular, world Mercator, simple)
+- 📁 **Collapsible control panels** to save screen space
+- ✨ **Smooth time interpolation** for fluid animations
 
 ## Installation
 
@@ -243,6 +246,93 @@ mp.show(port=5000, debug=False)
 # Open http://localhost:5000 in your browser
 ```
 
+### Custom Projections
+
+Choose different map projections for your visualization:
+
+```python
+# Web Mercator (default) - Standard web maps
+mp = MapPlot(
+    title="Temperature Map",
+    projection="EPSG3857"  # Default
+)
+
+# Equirectangular - Simple lat/lon grid (good for scientific data)
+mp = MapPlot(
+    title="Climate Data",
+    projection="EPSG4326"  # Simple CRS
+)
+
+# World Mercator - Alternative Mercator
+mp = MapPlot(
+    title="Navigation Map",
+    projection="EPSG3395"
+)
+
+# Simple CRS - For non-geographic maps
+mp = MapPlot(
+    title="Custom Coordinates",
+    projection="Simple"
+)
+```
+
+**When to use different projections:**
+- **EPSG3857** (Web Mercator): General web maps, navigation, default choice
+- **EPSG4326** (Equirectangular): Scientific data, climate models, equal spacing
+- **EPSG3395** (World Mercator): Navigation, shipping routes
+- **Simple**: Non-geographic data, custom coordinate systems
+
+### Collapsible Control Panels
+
+All control sections can be collapsed to save screen space:
+
+```python
+mp = MapPlot(title="Clean Interface Demo")
+# ... add variables ...
+mp.save_html('dashboard.html')
+```
+
+**Features:**
+- Click any section header to collapse/expand
+- Arrow indicators show current state (▼ = expanded, ▶ = collapsed)
+- Smooth animations when toggling
+- Perfect for mobile/tablet viewing
+- Reduces clutter on busy dashboards
+
+### Smooth Time Interpolation
+
+Enable smooth blending between animation frames:
+
+```python
+# Standard animation (discrete jumps)
+mp = MapPlot(
+    title="Standard Animation",
+    interpolate_frames=False  # Default
+)
+
+# Smooth animation (blended frames)
+mp = MapPlot(
+    title="Smooth Animation",
+    interpolate_frames=True  # Enable interpolation
+)
+
+mp.add_variable(
+    name='Temperature',
+    lon=lon2d,
+    lat=lat2d,
+    data=temperature_3d,
+    timestamps=timestamps,
+    ...
+)
+```
+
+**When to use interpolation:**
+- ✓ Presentations - smoother appearance
+- ✓ Few time steps - fills in gaps visually
+- ✓ Continuous phenomena (temperature, pressure)
+- ✗ Scientific analysis - need exact values
+- ✗ Discrete events (rain/no rain)
+
 ### Auto-Refresh for Real-Time Monitoring
 
 Enable automatic page refreshing for real-time data visualization:
@@ -302,7 +392,7 @@ while True:
 
 ### MapPlot Class
 
-#### `__init__(title, center, zoom, auto_refresh)`
+#### `__init__(title, center, zoom, auto_refresh, projection, interpolate_frames)`
 
 Initialize a MapPlot instance.
 
@@ -311,6 +401,12 @@ Initialize a MapPlot instance.
 - `center` (tuple): (lat, lon) center point. If None, auto-calculated from data
 - `zoom` (int): Initial zoom level (1-18)
 - `auto_refresh` (int, optional): Auto-refresh interval in seconds. When set, the page automatically reloads at this interval for real-time data updates. Includes visual countdown indicator. Useful for live monitoring dashboards. Default: None (disabled)
+- `projection` (str, optional): Coordinate reference system/projection. Options:
+  - `'EPSG3857'`: Web Mercator (default, used by Google Maps/OSM)
+  - `'EPSG4326'`: Simple equirectangular/Plate Carrée projection
+  - `'EPSG3395'`: World Mercator projection
+  - `'Simple'`: Simple CRS for non-geographic maps
+- `interpolate_frames` (bool, optional): Enable smooth interpolation between animation frames. When True, data values are linearly blended during transitions for fluid animations. Default: False
 
 #### `add_variable(name, lon, lat, data, **kwargs)`
 
@@ -402,6 +498,7 @@ The generated web interface includes:
 - **🔍 Location search** - geocoding to jump to any location (e.g., "London, UK", "Tokyo, Japan")
 - **⛶ Fullscreen mode** - immersive viewing experience
 - **🗺️ Floating mini-map** - overview navigation in top-right corner (collapsible)
+- **📁 Collapsible panels** - Click section headers to collapse/expand control panels
 - **Reset view** button
 
 ### Visualization Controls
@@ -458,6 +555,9 @@ See the `examples/` directory for complete working examples:
 - `example_basemap_selection.py` - Switch between different base maps (OSM, topo, satellite)
 - `example_advanced_features.py` - **NEW!** Dark mode, search, fullscreen, and UI features
 - `example_auto_refresh.py` - **NEW!** Auto-refresh for real-time monitoring dashboards
+- `example_projections.py` - **NEW!** Custom projection comparison (Web Mercator, equirectangular, etc.)
+- `example_collapsible_panels.py` - **NEW!** Collapsible control panels for clean interface
+- `example_smooth_interpolation.py` - **NEW!** Smooth time interpolation for fluid animations
 - `example_webserver.py` - Using web server mode
 
 Run any example:

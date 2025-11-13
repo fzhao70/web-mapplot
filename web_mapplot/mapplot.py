@@ -24,7 +24,13 @@ class MapPlot:
     - Multiple variables with switching capability
     """
 
-    def __init__(self, title: str = "Map Visualization", center: Tuple[float, float] = None, zoom: int = 4, auto_refresh: Optional[int] = None):
+    def __init__(self,
+                 title: str = "Map Visualization",
+                 center: Tuple[float, float] = None,
+                 zoom: int = 4,
+                 auto_refresh: Optional[int] = None,
+                 projection: str = "EPSG3857",
+                 interpolate_frames: bool = False):
         """
         Initialize MapPlot instance.
 
@@ -35,11 +41,21 @@ class MapPlot:
             auto_refresh: Auto-refresh interval in seconds (None to disable).
                          When set, the page will reload at this interval for real-time data updates.
                          Useful for live data feeds and monitoring dashboards.
+            projection: Coordinate reference system/projection:
+                       - 'EPSG3857': Web Mercator (default, used by Google Maps, OSM)
+                       - 'EPSG4326': Simple equirectangular/Plate Carrée projection
+                       - 'EPSG3395': World Mercator projection
+                       - 'Simple': Simple CRS for non-geographic maps
+            interpolate_frames: Enable smooth interpolation between animation frames.
+                              When True, data values are blended during transitions for
+                              fluid animations. Default: False.
         """
         self.title = title
         self.center = center
         self.zoom = zoom
         self.auto_refresh = auto_refresh
+        self.projection = projection
+        self.interpolate_frames = interpolate_frames
         self.variables = {}
 
     def add_variable(self,
@@ -157,6 +173,8 @@ class MapPlot:
             'center': self.center,
             'zoom': self.zoom,
             'auto_refresh': self.auto_refresh,
+            'projection': self.projection,
+            'interpolate_frames': self.interpolate_frames,
             'variables': self.variables
         })
 

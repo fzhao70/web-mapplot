@@ -200,15 +200,51 @@
         }
 
         .control-section {
-            padding: 20px;
             border-bottom: 1px solid var(--border-light);
+        }
+
+        .control-section-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .control-section-header:hover {
+            background: var(--bg-secondary);
         }
 
         .control-section h3 {
             font-size: 16px;
             color: var(--text-primary);
-            margin-bottom: 12px;
+            margin: 0;
             font-weight: 600;
+        }
+
+        .collapse-icon {
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: transform 0.3s;
+        }
+
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .control-section-content {
+            padding: 0 20px 20px 20px;
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        }
+
+        .control-section-content.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
         }
 
         .control-group {
@@ -484,62 +520,82 @@
 
         <div id="control-panel">
             <div class="control-section">
-                <h3>Variable Selection</h3>
-                <div class="control-group">
-                    <label for="variable-select">Primary Variable:</label>
-                    <select id="variable-select"></select>
+                <div class="control-section-header" onclick="toggleSection(this)">
+                    <h3>Variable Selection</h3>
+                    <span class="collapse-icon">▼</span>
                 </div>
-                <div id="variable-info" class="info-box"></div>
+                <div class="control-section-content">
+                    <div class="control-group">
+                        <label for="variable-select">Primary Variable:</label>
+                        <select id="variable-select"></select>
+                    </div>
+                    <div id="variable-info" class="info-box"></div>
+                </div>
             </div>
 
             <div class="control-section">
-                <h3>Layer Visibility</h3>
-                <div id="layer-toggles"></div>
-                <div class="control-group">
-                    <button class="button secondary" id="show-all-layers">Show All</button>
-                    <button class="button secondary" id="hide-all-layers">Hide All</button>
+                <div class="control-section-header" onclick="toggleSection(this)">
+                    <h3>Layer Visibility</h3>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="control-section-content">
+                    <div id="layer-toggles"></div>
+                    <div class="control-group">
+                        <button class="button secondary" id="show-all-layers">Show All</button>
+                        <button class="button secondary" id="hide-all-layers">Hide All</button>
+                    </div>
                 </div>
             </div>
 
             <div class="control-section" id="time-controls">
-                <h3>Time Control</h3>
-                <div class="time-display" id="time-display">--</div>
-                <div class="play-controls">
-                    <button class="button secondary" id="play-pause">▶ Play</button>
-                    <button class="button secondary" id="step-back">◄</button>
-                    <button class="button secondary" id="step-forward">►</button>
+                <div class="control-section-header" onclick="toggleSection(this)">
+                    <h3>Time Control</h3>
+                    <span class="collapse-icon">▼</span>
                 </div>
-                <div class="control-group">
-                    <label for="time-slider">Time Step:</label>
-                    <input type="range" id="time-slider" min="0" max="0" value="0">
-                </div>
-                <div class="control-group">
-                    <label for="speed-slider">Animation Speed:</label>
-                    <input type="range" id="speed-slider" min="100" max="2000" value="500" step="100">
+                <div class="control-section-content">
+                    <div class="time-display" id="time-display">--</div>
+                    <div class="play-controls">
+                        <button class="button secondary" id="play-pause">▶ Play</button>
+                        <button class="button secondary" id="step-back">◄</button>
+                        <button class="button secondary" id="step-forward">►</button>
+                    </div>
+                    <div class="control-group">
+                        <label for="time-slider">Time Step:</label>
+                        <input type="range" id="time-slider" min="0" max="0" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label for="speed-slider">Animation Speed:</label>
+                        <input type="range" id="speed-slider" min="100" max="2000" value="500" step="100">
+                    </div>
                 </div>
             </div>
 
             <div class="control-section">
-                <h3>Visualization Settings</h3>
-                <div class="control-group">
-                    <label for="basemap-select">Base Map:</label>
-                    <select id="basemap-select">
-                        <option value="osm">OpenStreetMap</option>
-                        <option value="topo">Topographic</option>
-                        <option value="satellite">Satellite</option>
-                        <option value="light">Light (CartoDB)</option>
-                        <option value="dark">Dark (CartoDB)</option>
-                    </select>
+                <div class="control-section-header" onclick="toggleSection(this)">
+                    <h3>Visualization Settings</h3>
+                    <span class="collapse-icon">▼</span>
                 </div>
-                <div class="control-group">
-                    <label for="opacity-slider">Opacity:</label>
-                    <input type="range" id="opacity-slider" min="0" max="100" value="70">
+                <div class="control-section-content">
+                    <div class="control-group">
+                        <label for="basemap-select">Base Map:</label>
+                        <select id="basemap-select">
+                            <option value="osm">OpenStreetMap</option>
+                            <option value="topo">Topographic</option>
+                            <option value="satellite">Satellite</option>
+                            <option value="light">Light (CartoDB)</option>
+                            <option value="dark">Dark (CartoDB)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="opacity-slider">Opacity:</label>
+                        <input type="range" id="opacity-slider" min="0" max="100" value="70">
+                    </div>
+                    <div class="control-group" id="vector-scale-control" style="display: none;">
+                        <label for="vector-scale-slider">Vector Scale: <span id="vector-scale-value">1.0</span>x</label>
+                        <input type="range" id="vector-scale-slider" min="0.1" max="5.0" value="1.0" step="0.1">
+                    </div>
+                    <button class="button" id="reset-view">Reset View</button>
                 </div>
-                <div class="control-group" id="vector-scale-control" style="display: none;">
-                    <label for="vector-scale-slider">Vector Scale: <span id="vector-scale-value">1.0</span>x</label>
-                    <input type="range" id="vector-scale-slider" min="0.1" max="5.0" value="1.0" step="0.1">
-                </div>
-                <button class="button" id="reset-view">Reset View</button>
             </div>
         </div>
 
@@ -609,14 +665,30 @@
         });
 
         function initMap() {
+            // Configure projection/CRS
+            const crsOptions = getCRS(DATA.projection);
+
             map = L.map('map', {
                 center: DATA.center,
                 zoom: DATA.zoom,
-                zoomControl: true
+                zoomControl: true,
+                crs: crsOptions
             });
 
             currentBaseLayer = getBaseLayer('osm');
             currentBaseLayer.addTo(map);
+        }
+
+        function getCRS(projection) {
+            // Return appropriate Leaflet CRS based on projection string
+            const projections = {
+                'EPSG3857': L.CRS.EPSG3857,  // Web Mercator (default)
+                'EPSG4326': L.CRS.EPSG4326,  // WGS84 / Simple equirectangular
+                'EPSG3395': L.CRS.EPSG3395,  // World Mercator
+                'Simple': L.CRS.Simple        // Simple CRS for non-geographic maps
+            };
+
+            return projections[projection] || L.CRS.EPSG3857;
         }
 
         function initMiniMap() {
@@ -1593,6 +1665,31 @@
             }, intervalSeconds * 1000);
 
             console.log(`Auto-refresh enabled: ${intervalSeconds} seconds`);
+        }
+
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.collapse-icon');
+
+            content.classList.toggle('collapsed');
+            icon.classList.toggle('collapsed');
+        }
+
+        // Smooth interpolation helper function
+        function interpolateData(data1, data2, fraction) {
+            // Linearly interpolate between two 2D data arrays
+            const result = [];
+            for (let i = 0; i < data1.length; i++) {
+                result[i] = [];
+                for (let j = 0; j < data1[i].length; j++) {
+                    if (isNaN(data1[i][j]) || isNaN(data2[i][j])) {
+                        result[i][j] = data1[i][j];  // Keep original if NaN
+                    } else {
+                        result[i][j] = data1[i][j] * (1 - fraction) + data2[i][j] * fraction;
+                    }
+                }
+            }
+            return result;
         }
     </script>
 </body>
